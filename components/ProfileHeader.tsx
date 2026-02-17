@@ -9,6 +9,17 @@ interface ProfileHeaderProps {
 export function ProfileHeader({ profile }: ProfileHeaderProps) {
     return (
         <div className="flex flex-col items-center text-center mb-8 animate-in fade-in slide-in-from-top-4 duration-500">
+            {profile.banner && (
+                <div className="relative w-full h-36 mb-6 rounded-2xl overflow-hidden shadow-md -mx-4">
+                    <Image
+                        src={profile.banner}
+                        alt={`${profile.name} banner`}
+                        fill
+                        className="object-cover"
+                        priority
+                    />
+                </div>
+            )}
             <div className="relative w-24 h-24 mb-4 rounded-full overflow-hidden border-4 border-white dark:border-zinc-800 shadow-lg">
                 <Image
                     src={profile.image || "/placeholder-avatar.png"}

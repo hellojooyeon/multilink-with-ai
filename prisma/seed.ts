@@ -12,6 +12,7 @@ async function main() {
             name: 'Jooyeon Jo',
             bio: 'AI Engineer & Creator',
             image: 'https://github.com/shadcn.png', // Placeholder
+            banner: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80', // Placeholder banner
             instagram: 'https://instagram.com/hellojooyeon',
             blog: 'https://blog.naver.com/hellojooyeon',
             email: 'mailto:hello@example.com',
@@ -58,6 +59,14 @@ async function main() {
                 variant: 'list',
                 order: 4,
                 isActive: true,
+            },
+            {
+                title: 'Coming Soon (Inactive)',
+                url: 'https://example.com/coming-soon',
+                icon: 'Star',
+                variant: 'card',
+                order: 5,
+                isActive: false,
             },
         ],
     })

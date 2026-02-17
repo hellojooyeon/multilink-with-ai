@@ -15,6 +15,7 @@ model Profile {
   name        String
   bio         String?
   image       String?
+  banner      String?
   instagram   String?
   blog        String?
   email       String?

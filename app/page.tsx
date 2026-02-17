@@ -1,12 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { ProfileHeader } from "@/components/ProfileHeader";
 import { LinkItem } from "@/components/LinkItem";
-import { Icon } from "@/components/Icon";
+import { ShareButton } from "@/components/ShareButton";
 
 async function getData() {
   const profile = await prisma.profile.findFirst();
   const links = await prisma.link.findMany({
-    where: { isActive: true },
     orderBy: { order: 'asc' },
   });
 
@@ -29,12 +28,7 @@ export default async function Home() {
       <div className="max-w-md mx-auto w-full">
         {/* Share Button (Top Right) */}
         <div className="flex justify-end mb-4">
-          <button
-            className="p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
-            aria-label="Share"
-          >
-            <Icon name="Share2" size={20} />
-          </button>
+          <ShareButton />
         </div>
 
         <ProfileHeader profile={profile} />

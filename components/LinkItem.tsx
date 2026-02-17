@@ -12,7 +12,7 @@ interface LinkItemProps {
 export function LinkItem({ link }: LinkItemProps) {
     const [showModal, setShowModal] = useState(false);
 
-    const isOpen = !link.openDate || new Date(link.openDate) <= new Date();
+    const isOpen = link.isActive && (!link.openDate || new Date(link.openDate) <= new Date());
 
     const handleClick = (e: React.MouseEvent) => {
         if (!isOpen) {
@@ -77,8 +77,10 @@ export function LinkItem({ link }: LinkItemProps) {
                             오픈 예정입니다!
                         </h3>
                         <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-                            이 링크는 <span className="font-semibold text-zinc-900 dark:text-zinc-200">{formattedDate}</span>에 공개됩니다.
-                            <br />조금만 기다려주세요! 🚀
+                            {formattedDate
+                                ? <>이 링크는 <span className="font-semibold text-zinc-900 dark:text-zinc-200">{formattedDate}</span>에 공개됩니다.<br />조금만 기다려주세요! 🚀</>
+                                : <>현재 이용할 수 없는 링크입니다.<br />나중에 다시 확인해주세요!</>
+                            }
                         </p>
                         <button
                             onClick={() => setShowModal(false)}
