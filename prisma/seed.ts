@@ -21,8 +21,14 @@ async function main() {
 
     console.log({ profile })
 
-    // Cleanup Links
+    // Cleanup (Order matters due to foreign keys)
+    await prisma.linkClick.deleteMany()
     await prisma.link.deleteMany()
+    await prisma.group.deleteMany()
+
+    // Create Groups
+    const groupSocial = await prisma.group.create({ data: { name: 'Socials', order: 1 } })
+    const groupWork = await prisma.group.create({ data: { name: 'Work', order: 2 } })
 
     // Create Links
     await prisma.link.createMany({
@@ -34,6 +40,7 @@ async function main() {
                 variant: 'card',
                 order: 1,
                 isActive: true,
+                groupId: groupWork.id
             },
             {
                 title: 'Latest YouTube Video',
@@ -42,6 +49,7 @@ async function main() {
                 variant: 'card',
                 order: 2,
                 isActive: true,
+                groupId: groupSocial.id
             },
             {
                 title: 'Open Soon Project',
@@ -51,6 +59,7 @@ async function main() {
                 order: 3,
                 isActive: true,
                 startDate: new Date('2030-01-01'), // Future date
+                groupId: groupWork.id
             },
             {
                 title: 'My Portfolio',
@@ -71,7 +80,7 @@ async function main() {
         ],
     })
 
-    console.log('Seeded links')
+    console.log('Seeded groups and links')
 }
 
 main()
