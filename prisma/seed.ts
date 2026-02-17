@@ -50,7 +50,7 @@ async function main() {
                 variant: 'list',
                 order: 3,
                 isActive: true,
-                openDate: new Date('2030-01-01'), // Future date
+                startDate: new Date('2030-01-01'), // Future date
             },
             {
                 title: 'My Portfolio',

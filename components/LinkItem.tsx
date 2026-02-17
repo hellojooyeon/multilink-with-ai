@@ -13,7 +13,7 @@ interface LinkItemProps {
 export function LinkItem({ link }: LinkItemProps) {
     const [showModal, setShowModal] = useState(false);
 
-    const isOpen = link.isActive && (!link.openDate || new Date(link.openDate) <= new Date());
+    const isOpen = link.isActive && (!link.startDate || new Date(link.startDate) <= new Date());
 
     const handleClick = (e: React.MouseEvent) => {
         if (!isOpen) {
@@ -25,8 +25,8 @@ export function LinkItem({ link }: LinkItemProps) {
         }
     };
 
-    const formattedDate = link.openDate
-        ? new Date(link.openDate).toLocaleDateString('ko-KR', {
+    const formattedDate = link.startDate
+        ? new Date(link.startDate).toLocaleDateString('ko-KR', {
             year: 'numeric', month: '2-digit', day: '2-digit'
         })
         : '';
@@ -59,8 +59,13 @@ export function LinkItem({ link }: LinkItemProps) {
                     <span className="font-semibold text-zinc-800 dark:text-zinc-100 transition-colors">
                         {link.title}
                     </span>
+                    {link.description && (
+                        <span className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 line-clamp-1">
+                            {link.description}
+                        </span>
+                    )}
                     {!isOpen && (
-                        <span className="text-xs text-red-500 font-medium">
+                        <span className="text-xs text-red-500 font-medium mt-0.5">
                             🔒 오픈 예정: {formattedDate}
                         </span>
                     )}
