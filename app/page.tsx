@@ -3,6 +3,7 @@ import { ProfileHeader } from "@/components/ProfileHeader";
 import { LinkItem } from "@/components/LinkItem";
 import { ShareButton } from "@/components/ShareButton";
 import { VisitTracker } from "@/components/VisitTracker";
+import { Settings } from "lucide-react";
 
 async function getData() {
   const profile = await prisma.profile.findFirst();
@@ -29,7 +30,14 @@ export default async function Home() {
       <VisitTracker />
       <div className="max-w-md mx-auto w-full">
         {/* Share Button (Top Right) */}
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-end gap-2 mb-4">
+          <a
+            href="/admin"
+            className="flex items-center justify-center p-2 bg-white dark:bg-zinc-800 rounded-full shadow-sm hover:shadow transition-all text-zinc-600 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-700"
+            aria-label="Admin Dashboard"
+          >
+            <Settings size={20} />
+          </a>
           <ShareButton />
         </div>
 
