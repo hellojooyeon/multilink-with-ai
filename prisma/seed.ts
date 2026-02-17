@@ -1,7 +1,9 @@
 import 'dotenv/config'
-import { PrismaClient } from '@prisma/client'
+//import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '../prisma/app/generated/prisma-client'
 
-const prisma = new PrismaClient()
+import { withAccelerate } from '@prisma/extension-accelerate'
+const prisma = new PrismaClient().$extends(withAccelerate());
 
 async function main() {
     // Upsert Profile
