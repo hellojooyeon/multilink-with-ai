@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { ProfileHeader } from "@/components/ProfileHeader";
 import { LinkItem } from "@/components/LinkItem";
 import { ShareButton } from "@/components/ShareButton";
+import { VisitTracker } from "@/components/VisitTracker";
 
 async function getData() {
   const profile = await prisma.profile.findFirst();
@@ -25,6 +26,7 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 py-12 px-4 selection:bg-black/10 dark:selection:bg-white/20">
+      <VisitTracker />
       <div className="max-w-md mx-auto w-full">
         {/* Share Button (Top Right) */}
         <div className="flex justify-end mb-4">

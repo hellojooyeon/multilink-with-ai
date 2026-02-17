@@ -34,4 +34,17 @@ model Link {
   openDate    DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  clicks      LinkClick[]
+}
+
+model Visit {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+}
+
+model LinkClick {
+  id        Int      @id @default(autoincrement())
+  linkId    Int
+  link      Link     @relation(fields: [linkId], references: [id])
+  createdAt DateTime @default(now())
 }

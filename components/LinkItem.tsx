@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Link as LinkType } from "@prisma/client";
 import { Icon } from "@/components/Icon";
 import { cn } from "@/lib/utils";
+import { recordLinkClick } from "@/app/actions/analytics";
 
 interface LinkItemProps {
     link: LinkType;
@@ -18,6 +19,9 @@ export function LinkItem({ link }: LinkItemProps) {
         if (!isOpen) {
             e.preventDefault();
             setShowModal(true);
+        } else {
+            // Only record click if the link is actually opening
+            recordLinkClick(link.id);
         }
     };
 
