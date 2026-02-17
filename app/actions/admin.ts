@@ -163,21 +163,28 @@ export async function getStatistics(days: number = 30) {
     // SQLite doesn't have easy date truncation in Prisma groupBy yet without raw query.
     // Let's use raw query for easier aggregation by day
 
+//     const visitsByDate = await prisma.$queryRaw`
+//     SELECT date(createdAt) as date, count(*) as count
+//     FROM Visit
+//     WHERE createdAt >= ${start} AND createdAt <= ${end}
+//     GROUP BY date(createdAt)
+//     ORDER BY date(createdAt) ASC
+//   ` as any[];
     const visitsByDate = await prisma.$queryRaw`
-    SELECT date(createdAt) as date, count(*) as count
-    FROM Visit
-    WHERE createdAt >= ${start} AND createdAt <= ${end}
-    GROUP BY date(createdAt)
-    ORDER BY date(createdAt) ASC
+    SELECT DATE_TRUNC('day', "createdAt") as date, CAST(count(*) AS INTEGER) as count
+    FROM "Visit"
+    WHERE "createdAt" >= ${start} AND "createdAt" <= ${end}
+    GROUP BY DATE_TRUNC('day', "createdAt")
+    ORDER BY date ASC
   ` as any[];
 
     // 2. Link Clicks by Date (Total)
     const clicksByDate = await prisma.$queryRaw`
-    SELECT date(createdAt) as date, count(*) as count
-    FROM LinkClick
-    WHERE createdAt >= ${start} AND createdAt <= ${end}
-    GROUP BY date(createdAt)
-    ORDER BY date(createdAt) ASC
+    SELECT DATE_TRUNC('day', "createdAt") as date, CAST(count(*) AS INTEGER) as count
+    FROM "LinkClick"
+    WHERE "createdAt" >= ${start} AND "createdAt" <= ${end}
+    GROUP BY DATE_TRUNC('day', "createdAt")
+    ORDER BY date ASC
   ` as any[];
 
     // 3. Clicks per Link
