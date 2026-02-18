@@ -10,22 +10,22 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
     return (
         <div className="flex flex-col items-center text-center mb-8 animate-in fade-in slide-in-from-top-4 duration-500">
             {profile.banner && (
-                <div className="relative w-full h-36 mb-6 rounded-2xl overflow-hidden shadow-md -mx-4">
+                <div className="relative w-full h-36 rounded-2xl overflow-hidden shadow-md -mx-4 group">
                     <Image
                         src={profile.banner}
                         alt={`${profile.name} banner`}
                         fill
-                        className="object-cover"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
                         priority
                     />
                 </div>
             )}
-            <div className="relative w-24 h-24 mb-4 rounded-full overflow-hidden border-4 border-white dark:border-zinc-800 shadow-lg">
+            <div className={`relative w-28 h-28 mb-4 rounded-full overflow-hidden border-4 border-white dark:border-zinc-950 shadow-xl z-10 ${profile.banner ? '-mt-14' : ''}`}>
                 <Image
                     src={profile.image || "/placeholder-avatar.png"}
                     alt={profile.name}
                     fill
-                    className="object-cover"
+                    className="object-cover bg-white dark:bg-zinc-800"
                     priority
                 />
             </div>
