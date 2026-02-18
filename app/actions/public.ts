@@ -3,7 +3,9 @@
 import { prisma } from "@/lib/prisma";
 
 export async function getPublicData() {
-    const profile = await prisma.profile.findFirst();
+    const profile = await prisma.profile.findFirst({
+        include: { socialLinks: { orderBy: { order: 'asc' } } }
+    });
 
     // Fetch all active links. 
     const links = await prisma.link.findMany({

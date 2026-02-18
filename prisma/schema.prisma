@@ -14,16 +14,28 @@ generator client {
 
 
 model Profile {
-  id          Int      @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   name        String
   bio         String?
   image       String?
   banner      String?
-  instagram   String?
-  blog        String?
+  instagram   String?      // Deprecated in favor of socialLinks, keep for migration if needed
+  blog        String?      // Deprecated
   email       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  socialLinks SocialLink[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model SocialLink {
+  id        Int      @id @default(autoincrement())
+  platform  String   // "youtube", "twitter", "instagram", "blog", "custom"
+  url       String
+  order     Int      @default(0)
+  profileId Int
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Link {

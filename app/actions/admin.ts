@@ -15,7 +15,9 @@ async function checkAuth() {
 // Profile Actions
 export async function getProfile() {
     await checkAuth();
-    return await prisma.profile.findFirst();
+    return await prisma.profile.findFirst({
+        include: { socialLinks: { orderBy: { order: 'asc' } } }
+    });
 }
 
 export async function updateProfile(data: {
@@ -26,6 +28,7 @@ export async function updateProfile(data: {
     instagram?: string;
     blog?: string;
     email?: string;
+    socialLinks?: { platform: string; url: string; order: number }[];
 }) {
     await checkAuth();
 
@@ -34,14 +37,49 @@ export async function updateProfile(data: {
         throw new Error("Bio exceeds 1500 characters");
     }
 
-    const profile = await prisma.profile.upsert({
-        where: { id: 1 },
-        update: data,
-        create: { ...data, name: data.name },
+    const { socialLinks, ...profileData } = data;
+
+    // Use transaction to update profile and social links
+    const profile = await prisma.$transaction(async (tx) => {
+        // 1. Update Profile
+        const updatedProfile = await tx.profile.upsert({
+            where: { id: 1 },
+            update: profileData,
+            create: { ...profileData, name: data.name },
+        });
+
+        // 2. Update Social Links if provided
+        if (socialLinks) {
+            // Delete existing links for this profile
+            await tx.socialLink.deleteMany({
+                where: { profileId: updatedProfile.id }
+            });
+
+            // Create new links
+            if (socialLinks.length > 0) {
+                await tx.socialLink.createMany({
+                    data: socialLinks.map(link => ({
+                        ...link,
+                        profileId: updatedProfile.id
+                    }))
+                });
+            }
+        }
+
+        return updatedProfile;
     });
 
     revalidatePath("/");
     return profile;
+}
+
+export async function getSocialLinks() {
+    await checkAuth();
+    // Assuming profile ID is 1
+    return await prisma.socialLink.findMany({
+        where: { profileId: 1 },
+        orderBy: { order: 'asc' }
+    });
 }
 
 // Group Actions

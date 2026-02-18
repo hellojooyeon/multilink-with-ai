@@ -15,10 +15,29 @@ async function main() {
             bio: 'AI Engineer & Creator',
             image: 'https://github.com/shadcn.png', // Placeholder
             banner: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80', // Placeholder banner
-            instagram: 'https://instagram.com/hellojooyeon',
-            blog: 'https://blog.naver.com/hellojooyeon',
             email: 'mailto:hello@example.com',
         },
+    })
+
+    console.log({ profile })
+
+    // Seed Social Links
+    await prisma.socialLink.deleteMany({ where: { profileId: profile.id } })
+    await prisma.socialLink.createMany({
+        data: [
+            {
+                profileId: profile.id,
+                platform: 'instagram',
+                url: 'https://instagram.com/hellojooyeon',
+                order: 1
+            },
+            {
+                profileId: profile.id,
+                platform: 'blog',
+                url: 'https://blog.naver.com/hellojooyeon',
+                order: 2
+            }
+        ]
     })
 
     console.log({ profile })
