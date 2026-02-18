@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { usePathname } from 'next/navigation'
 import { Profile, Link, Group } from "@/prisma/app/generated/prisma-client";
 import { ProfileHeader } from "@/components/ProfileHeader";
 import { LinkItem } from "@/components/LinkItem";
@@ -80,9 +79,6 @@ export function MainPageClient({ profile, links, groups }: MainPageClientProps) 
         return [...groups].sort((a, b) => a.order - b.order);
     }, [groups]);
 
-    const pathname = usePathname();
-    const isAdminPreview = pathname === '/admin/preview';
-
     return (
         <main className="min-h-screen bg-gray-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 py-12 px-4 selection:bg-black/10 dark:selection:bg-white/20 transition-colors duration-300">
             <VisitTracker />
@@ -92,13 +88,13 @@ export function MainPageClient({ profile, links, groups }: MainPageClientProps) 
                     <ThemeToggle />
                     <div className="flex gap-2">
                         {/* Admin Button */}
-                        {!isAdminPreview && <a
+                        <a
                             href="/admin"
                             className="flex items-center justify-center p-2 bg-white dark:bg-zinc-800 rounded-full shadow-sm hover:shadow transition-all text-zinc-600 dark:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-700"
                             aria-label="Admin Dashboard"
                         >
                             <Settings size={20} />
-                        </a>}
+                        </a>
                         <ShareButton />
                     </div>
                 </div>
