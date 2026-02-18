@@ -20,7 +20,7 @@ type SortOption = 'date' | 'name';
 type SortOrder = 'asc' | 'desc';
 
 export function MainPageClient({ profile, links, groups }: MainPageClientProps) {
-    const [viewMode, setViewMode] = useState<ViewMode>('card');
+    const [viewMode, setViewMode] = useState<ViewMode>('list');
     const [sortBy, setSortBy] = useState<SortOption>('date');
     const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
@@ -113,18 +113,18 @@ export function MainPageClient({ profile, links, groups }: MainPageClientProps) 
                 <div className="flex justify-between items-center mt-8 mb-4">
                     <div className="flex bg-gray-200 dark:bg-zinc-800 rounded-lg p-1">
                         <button
-                            onClick={() => setViewMode('card')}
-                            className={`p-1.5 rounded-md transition-all ${viewMode === 'card' ? 'bg-white dark:bg-zinc-700 shadow-sm' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'}`}
-                            aria-label="Card View"
-                        >
-                            <LayoutGrid size={18} />
-                        </button>
-                        <button
                             onClick={() => setViewMode('list')}
                             className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-white dark:bg-zinc-700 shadow-sm' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'}`}
                             aria-label="List View"
                         >
                             <ListIcon size={18} />
+                        </button>
+                        <button
+                            onClick={() => setViewMode('card')}
+                            className={`p-1.5 rounded-md transition-all ${viewMode === 'card' ? 'bg-white dark:bg-zinc-700 shadow-sm' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'}`}
+                            aria-label="Card View"
+                        >
+                            <LayoutGrid size={18} />
                         </button>
                     </div>
 

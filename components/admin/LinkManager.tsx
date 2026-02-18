@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Link as LinkType, Group } from "@/prisma/app/generated/prisma-client";
 import { createLink, updateLink, deleteLink, createGroup, updateGroup, deleteGroup, updateGroupLinks } from "@/app/actions/admin";
 import { Icon } from "@/components/Icon";
+import { LinkItem } from "@/components/LinkItem";
 
 interface LinkManagerProps {
     links: LinkType[];
@@ -99,6 +100,13 @@ export function LinkManager({ links, groups }: LinkManagerProps) {
             <div className="flex justify-between items-center">
                 <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Link Management</h2>
                 <div className="space-x-2">
+                    <a
+                        href="/admin/preview"
+                        target="_blank"
+                        className="px-3 py-1 text-sm bg-zinc-200 dark:bg-zinc-800 rounded hover:bg-zinc-300 dark:hover:bg-zinc-700 inline-block"
+                    >
+                        Preview Main Page
+                    </a>
                     <button
                         onClick={() => setIsCreatingGroup(true)}
                         className="px-3 py-1 text-sm bg-zinc-200 dark:bg-zinc-800 rounded hover:bg-zinc-300 dark:hover:bg-zinc-700"
@@ -169,117 +177,33 @@ export function LinkManager({ links, groups }: LinkManagerProps) {
 
             {/* Link Form (Create/Edit) */}
             {(isCreatingLink || editingLink) && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-white dark:bg-zinc-900 p-6 rounded-lg max-w-lg w-full shadow-xl max-h-[90vh] overflow-y-auto">
-                        <h3 className="text-lg font-bold mb-4">{editingLink ? 'Edit Link' : 'New Link'}</h3>
-                        <form action={handleSaveLink} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Title</label>
-                                <input name="title" defaultValue={editingLink?.title} className="w-full p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700" required />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">URL</label>
-                                <input name="url" defaultValue={editingLink?.url} className="w-full p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700" required />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Description (Optional)</label>
-                                <textarea name="description" defaultValue={editingLink?.description || ""} className="w-full p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700" />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Image</label>
-                                    <div className="flex gap-2">
-                                        <input
-                                            name="image"
-                                            defaultValue={editingLink?.image || ""}
-                                            placeholder="https://..."
-                                            className="flex-1 p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700"
-                                            onChange={(e) => {
-                                                // Allow manual URL entry
-                                            }}
-                                        />
-                                        <label className="cursor-pointer bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-700 p-2 rounded flex items-center justify-center min-w-[40px]">
-                                            <span className="text-xs">📂</span>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                className="hidden"
-                                                onChange={async (e) => {
-                                                    const file = e.target.files?.[0];
-                                                    if (!file) return;
+                <LinkModal
+                    link={editingLink}
+                    groups={groups}
+                    onClose={() => { setIsCreatingLink(false); setEditingLink(null); }}
+                    onSave={async (data) => {
+                        // Sanitize data for server action
+                        const payload = {
+                            title: data.title,
+                            url: data.url,
+                            description: data.description || undefined,
+                            image: data.image || undefined,
+                            icon: data.icon || undefined,
+                            groupId: data.groupId || undefined, // Convert null to undefined
+                            isActive: data.isActive,
+                            startDate: data.startDate || undefined,
+                            endDate: data.endDate || undefined,
+                        };
 
-                                                    const formData = new FormData();
-                                                    formData.append("file", file);
-
-                                                    try {
-                                                        // Disable submit button or show loading state here if desired
-                                                        const res = await fetch("/api/upload", {
-                                                            method: "POST",
-                                                            body: formData,
-                                                        });
-
-                                                        if (!res.ok) throw new Error("Upload failed");
-
-                                                        const data = await res.json();
-                                                        // Update the text input with the returned URL
-                                                        const input = document.querySelector('input[name="image"]') as HTMLInputElement;
-                                                        if (input) input.value = data.url;
-                                                    } catch (err) {
-                                                        alert("Failed to upload image");
-                                                        console.error(err);
-                                                    }
-                                                }}
-                                            />
-                                        </label>
-                                    </div>
-                                    <p className="text-xs text-zinc-500 mt-1">Accepts URL or File Upload</p>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Icon (Lucide Name)</label>
-                                    <input name="icon" defaultValue={editingLink?.icon || ""} placeholder="e.g. Github" className="w-full p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700" />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Group</label>
-                                <select name="groupId" defaultValue={editingLink?.groupId || ""} className="w-full p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700">
-                                    <option value="">None</option>
-                                    {groups.map(g => (
-                                        <option key={g.id} value={g.id}>{g.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Start Date</label>
-                                    <input
-                                        type="datetime-local"
-                                        name="startDate"
-                                        defaultValue={editingLink?.startDate ? new Date(editingLink.startDate).toISOString().slice(0, 16) : ""}
-                                        className="w-full p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">End Date</label>
-                                    <input
-                                        type="datetime-local"
-                                        name="endDate"
-                                        defaultValue={editingLink?.endDate ? new Date(editingLink.endDate).toISOString().slice(0, 16) : ""}
-                                        className="w-full p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700"
-                                    />
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <input type="checkbox" name="isActive" defaultChecked={editingLink?.isActive ?? true} id="isActive" />
-                                <label htmlFor="isActive">Active</label>
-                            </div>
-
-                            <div className="flex justify-end gap-2 pt-4">
-                                <button type="button" onClick={() => { setIsCreatingLink(false); setEditingLink(null); }} className="px-4 py-2 border rounded hover:bg-gray-100 dark:hover:bg-zinc-800">Cancel</button>
-                                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Save</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                        if (editingLink) {
+                            await updateLink(editingLink.id, payload);
+                            setEditingLink(null);
+                        } else {
+                            await createLink(payload as any); // Type assertion if needed, or strict
+                            setIsCreatingLink(false);
+                        }
+                    }}
+                />
             )}
 
             {/* Groups and Links Display */}
@@ -350,6 +274,195 @@ function LinkRow({ link, onEdit, onDelete }: { link: LinkType, onEdit: (l: LinkT
                 </span>
                 <button onClick={() => onEdit(link)} className="text-sm text-indigo-600 hover:text-indigo-500">Edit</button>
                 <button onClick={() => onDelete(link.id)} className="text-sm text-red-600 hover:text-red-500">Delete</button>
+            </div>
+        </div>
+    );
+}
+
+
+
+function LinkModal({ link, groups, onClose, onSave }: {
+    link: LinkType | null,
+    groups: (Group & { links: LinkType[] })[],
+    onClose: () => void,
+    onSave: (data: any) => Promise<void>
+}) {
+    // Initialize state with link data or defaults
+    const [formData, setFormData] = useState<Partial<LinkType>>({
+        title: link?.title || "",
+        url: link?.url || "",
+        description: link?.description || "",
+        image: link?.image || "",
+        icon: link?.icon || "",
+        groupId: link?.groupId || null,
+        isActive: link?.isActive ?? true,
+        startDate: link?.startDate || null,
+        endDate: link?.endDate || null,
+        // Mock required fields for preview
+        id: link?.id || 0,
+        createdAt: link?.createdAt || new Date(),
+        updatedAt: link?.updatedAt || new Date(),
+        order: link?.order || 0,
+    });
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value, type } = e.target;
+
+        if (type === 'checkbox') {
+            setFormData(prev => ({ ...prev, [name]: (e.target as HTMLInputElement).checked }));
+        } else if (name === 'startDate' || name === 'endDate') {
+            setFormData(prev => ({ ...prev, [name]: value ? new Date(value) : null }));
+        } else if (name === 'groupId') {
+            setFormData(prev => ({ ...prev, [name]: value ? parseInt(value) : null }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const res = await fetch("/api/upload", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!res.ok) throw new Error("Upload failed");
+
+            const data = await res.json();
+            setFormData(prev => ({ ...prev, image: data.url }));
+        } catch (err) {
+            alert("Failed to upload image");
+            console.error(err);
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        await onSave(formData);
+    }
+
+    // Prepare preview data (ensure it matches LinkType fully for the component)
+    const previewLink: LinkType = {
+        ...formData,
+        clicks: [], // Mock relation
+    } as LinkType;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white dark:bg-zinc-900 p-6 rounded-lg max-w-4xl w-full shadow-xl max-h-[90vh] overflow-y-auto flex flex-col md:flex-row gap-6">
+
+                {/* Left Column: Form */}
+                <div className="flex-1 space-y-4">
+                    <h3 className="text-lg font-bold mb-4">{link ? 'Edit Link' : 'New Link'}</h3>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Title</label>
+                            <input name="title" value={formData.title || ""} onChange={handleChange} className="w-full p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700" required />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">URL</label>
+                            <input name="url" value={formData.url || ""} onChange={handleChange} className="w-full p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700" required />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Description</label>
+                            <textarea name="description" value={formData.description || ""} onChange={handleChange} className="w-full p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Image</label>
+                                <div className="flex gap-2">
+                                    <input
+                                        name="image"
+                                        value={formData.image || ""}
+                                        onChange={handleChange}
+                                        placeholder="https://..."
+                                        className="flex-1 p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700"
+                                    />
+                                    <label className="cursor-pointer bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-700 p-2 rounded flex items-center justify-center min-w-[40px]">
+                                        <span className="text-xs">📂</span>
+                                        <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                                    </label>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Icon</label>
+                                <input name="icon" value={formData.icon || ""} onChange={handleChange} placeholder="e.g. Github" className="w-full p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700" />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Group</label>
+                            <select name="groupId" value={formData.groupId || ""} onChange={handleChange} className="w-full p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700">
+                                <option value="">None</option>
+                                {groups.map(g => (
+                                    <option key={g.id} value={g.id}>{g.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Start Date</label>
+                                <input
+                                    type="datetime-local"
+                                    name="startDate"
+                                    value={formData.startDate ? new Date(formData.startDate).toISOString().slice(0, 16) : ""}
+                                    onChange={handleChange}
+                                    className="w-full p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">End Date</label>
+                                <input
+                                    type="datetime-local"
+                                    name="endDate"
+                                    value={formData.endDate ? new Date(formData.endDate).toISOString().slice(0, 16) : ""}
+                                    onChange={handleChange}
+                                    className="w-full p-2 border rounded dark:bg-zinc-800 dark:border-zinc-700"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <input type="checkbox" name="isActive" checked={formData.isActive || false} onChange={handleChange} id="isActive" />
+                            <label htmlFor="isActive">Active</label>
+                        </div>
+
+                        <div className="flex justify-end gap-2 pt-4 border-t dark:border-zinc-800 mt-4">
+                            <button type="button" onClick={onClose} className="px-4 py-2 border rounded hover:bg-gray-100 dark:hover:bg-zinc-800">Cancel</button>
+                            <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Save</button>
+                        </div>
+                    </form>
+                </div>
+
+                {/* Right Column: Preview */}
+                <div className="w-full md:w-[320px] shrink-0 border-l dark:border-zinc-800 pl-6 flex flex-col">
+                    <h3 className="text-lg font-bold mb-4 text-zinc-500">Live Preview</h3>
+                    <div className="flex-1 flex flex-col gap-6 overflow-y-auto">
+
+                        <div>
+                            <p className="text-xs font-semibold text-zinc-400 mb-2 uppercase">Card View</p>
+                            <div className="max-w-[200px] mx-auto">
+                                <LinkItem link={previewLink} viewMode="card" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <p className="text-xs font-semibold text-zinc-400 mb-2 uppercase">List View</p>
+                            <LinkItem link={previewLink} viewMode="list" />
+                        </div>
+
+                        {/* Mobile Preview Context (Optional helpful text) */}
+                        <div className="mt-auto p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 text-xs rounded-lg">
+                            ℹ️ This is how your link will appear to visitors. Changes here are <strong>not saved</strong> until you click Save.
+                        </div>
+
+                    </div>
+                </div>
+
             </div>
         </div>
     );
