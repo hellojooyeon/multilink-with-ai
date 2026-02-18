@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link as LinkType, Group } from "@/prisma/app/generated/prisma-client";
-import { createLink, updateLink, deleteLink, createGroup, updateGroup, deleteGroup, updateGroupLinks } from "@/app/actions/admin";
+import { createLink, updateLink, deleteLink, createGroup, updateGroup, deleteGroup, updateGroupLinks, getLinkStats } from "@/app/actions/admin";
 import { Icon } from "@/components/Icon";
 import { LinkItem } from "@/components/LinkItem";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface LinkManagerProps {
     links: LinkType[];
@@ -14,6 +15,7 @@ interface LinkManagerProps {
 export function LinkManager({ links, groups }: LinkManagerProps) {
     const [isCreatingLink, setIsCreatingLink] = useState(false);
     const [editingLink, setEditingLink] = useState<LinkType | null>(null);
+    const [viewingStatsLink, setViewingStatsLink] = useState<LinkType | null>(null);
 
     // Group State
     const [isCreatingGroup, setIsCreatingGroup] = useState(false);
@@ -199,6 +201,14 @@ export function LinkManager({ links, groups }: LinkManagerProps) {
                 />
             )}
 
+            {/* Statistics Modal */}
+            {viewingStatsLink && (
+                <LinkStatsModal
+                    link={viewingStatsLink}
+                    onClose={() => setViewingStatsLink(null)}
+                />
+            )}
+
             {/* Groups and Links Display */}
             <div className="space-y-6">
                 {groups.map(group => (
@@ -224,7 +234,7 @@ export function LinkManager({ links, groups }: LinkManagerProps) {
                                 <div className="p-4 text-center text-sm text-zinc-400">No links in this group</div>
                             )}
                             {links.filter(l => l.groupId === group.id).map(link => (
-                                <LinkRow key={link.id} link={link} onEdit={setEditingLink} onDelete={handleDeleteLink} />
+                                <LinkRow key={link.id} link={link} onEdit={setEditingLink} onDelete={handleDeleteLink} onStats={setViewingStatsLink} />
                             ))}
                         </div>
                     </div>
@@ -240,7 +250,7 @@ export function LinkManager({ links, groups }: LinkManagerProps) {
                             <div className="p-4 text-center text-sm text-zinc-400">No ungrouped links</div>
                         )}
                         {ungroupedLinks.map(link => (
-                            <LinkRow key={link.id} link={link} onEdit={setEditingLink} onDelete={handleDeleteLink} />
+                            <LinkRow key={link.id} link={link} onEdit={setEditingLink} onDelete={handleDeleteLink} onStats={setViewingStatsLink} />
                         ))}
                     </div>
                 </div>
@@ -249,7 +259,7 @@ export function LinkManager({ links, groups }: LinkManagerProps) {
     );
 }
 
-function LinkRow({ link, onEdit, onDelete }: { link: LinkType, onEdit: (l: LinkType) => void, onDelete: (id: number) => void }) {
+function LinkRow({ link, onEdit, onDelete, onStats }: { link: LinkType, onEdit: (l: LinkType) => void, onDelete: (id: number) => void, onStats: (l: LinkType) => void }) {
     return (
         <div className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition">
             <div className="flex items-center gap-3">
@@ -271,6 +281,9 @@ function LinkRow({ link, onEdit, onDelete }: { link: LinkType, onEdit: (l: LinkT
                 </span>
                 <button onClick={() => onEdit(link)} className="text-sm text-indigo-600 hover:text-indigo-500">Edit</button>
                 <button onClick={() => onDelete(link.id)} className="text-sm text-red-600 hover:text-red-500">Delete</button>
+                <button onClick={() => onStats(link)} className="text-sm text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 transform hover:scale-105 transition" title="Statistics">
+                    Statistics
+                </button>
             </div>
         </div>
     );
@@ -357,6 +370,7 @@ function LinkModal({ link, groups, onClose, onSave }: {
                 {/* Left Column: Form */}
                 <div className="flex-1 space-y-4">
                     <h3 className="text-lg font-bold mb-4">{link ? 'Edit Link' : 'New Link'}</h3>
+
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium mb-1">Title</label>
@@ -460,6 +474,119 @@ function LinkModal({ link, groups, onClose, onSave }: {
                     </div>
                 </div>
 
+            </div>
+        </div>
+    );
+}
+
+
+
+function LinkStatsModal({ link, onClose }: { link: LinkType, onClose: () => void }) {
+    const [granularity, setGranularity] = useState<'hour' | 'day' | 'month' | 'quarter' | 'year'>('day');
+    const [stats, setStats] = useState<{ date: string, count: number }[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        let mounted = true;
+        setLoading(true);
+        getLinkStats(link.id, granularity).then(data => {
+            if (!mounted) return;
+            const formatted = (data as any[]).map((d: any) => ({
+                date: new Date(d.date).toISOString(), // Keep full ISO for formatting logic
+                count: Number(d.count)
+            }));
+            setStats(formatted);
+            setLoading(false);
+        });
+        return () => { mounted = false; };
+    }, [link.id, granularity]);
+
+    const totalClicks = stats.reduce((acc, curr) => acc + curr.count, 0);
+
+    const formatXAxis = (val: string) => {
+        const d = new Date(val);
+        if (granularity === 'hour') return `${d.getHours()}:00`;
+        if (granularity === 'day') return `${d.getMonth() + 1}/${d.getDate()}`;
+        if (granularity === 'month') return `${d.getFullYear()}/${d.getMonth() + 1}`;
+        if (granularity === 'quarter') return `${d.getFullYear()} Q${Math.floor(d.getMonth() / 3) + 1}`;
+        if (granularity === 'year') return `${d.getFullYear()}`;
+        return d.toLocaleDateString();
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white dark:bg-zinc-900 p-6 rounded-lg max-w-2xl w-full shadow-xl max-h-[90vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 className="text-xl font-bold">Statistics: {link.title}</h3>
+                        <p className="text-sm text-zinc-500 max-w-xs truncate">{link.url}</p>
+                    </div>
+                    <button onClick={onClose} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
+                        ✕
+                    </button>
+                </div>
+
+                <div className="flex justify-center mb-6">
+                    <div className="inline-flex bg-zinc-100 dark:bg-zinc-800 rounded-lg p-1">
+                        {(['hour', 'day', 'month', 'quarter', 'year'] as const).map(g => (
+                            <button
+                                key={g}
+                                onClick={() => setGranularity(g)}
+                                className={`px-3 py-1.5 text-sm rounded-md transition capitalize ${granularity === g
+                                    ? 'bg-white dark:bg-zinc-700 shadow-sm text-black dark:text-white font-medium'
+                                    : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'
+                                    }`}
+                            >
+                                {g}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {loading ? (
+                    <div className="h-[300px] flex items-center justify-center text-zinc-500">Loading data...</div>
+                ) : (
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-1">
+                            <div className="bg-zinc-50 dark:bg-zinc-800 p-4 rounded border dark:border-zinc-700 text-center">
+                                <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Total Clicks</div>
+                                <div className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{totalClicks}</div>
+                                <div className="text-xs text-zinc-400 mt-1 capitalize">By {granularity}</div>
+                            </div>
+                        </div>
+
+                        <div className="h-[300px] w-full">
+                            {stats.length > 0 ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={stats}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                                        <XAxis
+                                            dataKey="date"
+                                            tickFormatter={formatXAxis}
+                                            stroke="#9CA3AF"
+                                            fontSize={12}
+                                            minTickGap={20}
+                                        />
+                                        <YAxis stroke="#9CA3AF" fontSize={12} allowDecimals={false} />
+                                        <Tooltip
+                                            labelFormatter={(label) => {
+                                                const d = new Date(label);
+                                                return d.toLocaleString();
+                                            }}
+                                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                            cursor={{ fill: 'rgba(0,0,0,0.05)' }}
+                                        />
+                                        <Bar dataKey="count" fill="#4F46E5" radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="h-full flex items-center justify-center text-zinc-400">
+                                    No click data available for this period.
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

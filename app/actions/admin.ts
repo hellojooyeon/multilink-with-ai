@@ -264,19 +264,51 @@ export async function getStatistics(days: number = 30) {
     };
 }
 
-export async function getLinkDailyStats(linkId: number, days: number = 30) {
+export async function getLinkStats(linkId: number, granularity: 'hour' | 'day' | 'month' | 'quarter' | 'year' = 'day') {
     await checkAuth();
     const end = new Date();
     const start = new Date();
-    start.setDate(start.getDate() - days);
 
-    const data = await prisma.$queryRaw`
-        SELECT DATE_TRUNC('day', "createdAt") as date, CAST(count(*) AS INTEGER) as count
+    let truncUnit = 'day';
+
+    switch (granularity) {
+        case 'hour':
+            start.setHours(start.getHours() - 24);
+            truncUnit = 'hour';
+            break;
+        case 'day':
+            start.setDate(start.getDate() - 30);
+            truncUnit = 'day';
+            break;
+        case 'month':
+            start.setMonth(start.getMonth() - 12);
+            truncUnit = 'month';
+            break;
+        case 'quarter':
+            start.setMonth(start.getMonth() - 24); // 8 quarters
+            truncUnit = 'quarter';
+            break;
+        case 'year':
+            start.setFullYear(start.getFullYear() - 5);
+            truncUnit = 'year';
+            break;
+    }
+
+    // Prisma.sql is needed for safe raw queries with dynamic parts, but we can't use template literals for table/column names or keywords like date part in DATE_TRUNC directly if it expects a literal. 
+    // However, DATE_TRUNC first argument is text.
+
+    // We need to construct the SQL carefully. Prisma $queryRaw uses parameter substitution.
+    // The DATE_TRUNC unit must be a string literal in the SQL.
+
+    // Since we control truncUnit from a limited set of strings, we can inject it safely or use a parameter if Postgres allows. Postgres DATE_TRUNC('unit', ...) takes text.
+
+    const data = await prisma.$queryRawUnsafe(`
+        SELECT DATE_TRUNC('${truncUnit}', "createdAt") as date, CAST(count(*) AS INTEGER) as count
         FROM "LinkClick"
-        WHERE "linkId" = ${linkId} AND "createdAt" >= ${start} AND "createdAt" <= ${end}
-        GROUP BY DATE_TRUNC('day', "createdAt")
+        WHERE "linkId" = $1 AND "createdAt" >= $2 AND "createdAt" <= $3
+        GROUP BY DATE_TRUNC('${truncUnit}', "createdAt")
         ORDER BY date ASC
-    `;
+    `, linkId, start, end);
 
     return data;
 }
