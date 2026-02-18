@@ -3,8 +3,7 @@ import { isAdmin } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { logout } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { getLinks, getGroups, getStatistics } from "@/app/actions/admin";
+import { getProfile, getLinks, getGroups, getStatistics } from "@/app/actions/admin";
 import { ProfileEditor } from "@/components/admin/ProfileEditor";
 import { LinkManager } from "@/components/admin/LinkManager";
 import { StatisticsDashboard } from "@/components/admin/StatisticsDashboard";
@@ -18,7 +17,7 @@ export default async function AdminPage() {
 
     // Fetch all data in parallel
     const [profile, links, groups, stats] = await Promise.all([
-        prisma.profile.findFirst(),
+        getProfile(),
         getLinks(),
         getGroups(),
         getStatistics(30)

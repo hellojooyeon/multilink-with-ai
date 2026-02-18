@@ -7,7 +7,13 @@ import { Settings } from "lucide-react";
 
 async function getData() {
   const profile = await prisma.profile.findFirst();
+  const now = new Date();
   const links = await prisma.link.findMany({
+    where: {
+      isActive: true,
+      OR: [{ startDate: null }, { startDate: { lte: now } }],
+      AND: [{ OR: [{ endDate: null }, { endDate: { gte: now } }] }],
+    },
     orderBy: { order: 'asc' },
   });
 

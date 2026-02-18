@@ -13,6 +13,11 @@ async function checkAuth() {
 }
 
 // Profile Actions
+export async function getProfile() {
+    await checkAuth();
+    return await prisma.profile.findFirst();
+}
+
 export async function updateProfile(data: {
     name: string;
     bio?: string;
@@ -146,30 +151,6 @@ export async function getStatistics(days: number = 30) {
     start.setDate(start.getDate() - days);
 
     // 1. Main Page Visits by Date
-    const visits = await prisma.visit.groupBy({
-        by: ['createdAt'],
-        where: {
-            createdAt: {
-                gte: start,
-                lte: end,
-            },
-        },
-        _count: {
-            id: true,
-        },
-    });
-
-    // Prisma groupBy date returns full datetime, we need to aggregate by day manually or using raw query.
-    // SQLite doesn't have easy date truncation in Prisma groupBy yet without raw query.
-    // Let's use raw query for easier aggregation by day
-
-//     const visitsByDate = await prisma.$queryRaw`
-//     SELECT date(createdAt) as date, count(*) as count
-//     FROM Visit
-//     WHERE createdAt >= ${start} AND createdAt <= ${end}
-//     GROUP BY date(createdAt)
-//     ORDER BY date(createdAt) ASC
-//   ` as any[];
     const visitsByDate = await prisma.$queryRaw`
     SELECT DATE_TRUNC('day', "createdAt") as date, CAST(count(*) AS INTEGER) as count
     FROM "Visit"
@@ -231,11 +212,11 @@ export async function getLinkDailyStats(linkId: number, days: number = 30) {
     start.setDate(start.getDate() - days);
 
     const data = await prisma.$queryRaw`
-        SELECT date(createdAt) as date, count(*) as count
-        FROM LinkClick
-        WHERE linkId = ${linkId} AND createdAt >= ${start} AND createdAt <= ${end}
-        GROUP BY date(createdAt)
-        ORDER BY date(createdAt) ASC
+        SELECT DATE_TRUNC('day', "createdAt") as date, CAST(count(*) AS INTEGER) as count
+        FROM "LinkClick"
+        WHERE "linkId" = ${linkId} AND "createdAt" >= ${start} AND "createdAt" <= ${end}
+        GROUP BY DATE_TRUNC('day', "createdAt")
+        ORDER BY date ASC
     `;
 
     return data;
