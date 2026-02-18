@@ -260,8 +260,12 @@ function LinkRow({ link, onEdit, onDelete }: { link: LinkType, onEdit: (l: LinkT
     return (
         <div className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition">
             <div className="flex items-center gap-3">
-                <div className="w-8 h-8 flex items-center justify-center bg-gray-100 dark:bg-zinc-800 rounded">
-                    {link.icon ? <Icon name={link.icon} size={16} /> : <span className="text-xs">🔗</span>}
+                <div className="w-8 h-8 flex items-center justify-center bg-gray-100 dark:bg-zinc-800 rounded overflow-hidden">
+                    {link.image ? (
+                        <img src={link.image} alt={link.title} className="w-full h-full object-cover" />
+                    ) : (
+                        link.icon ? <Icon name={link.icon} size={16} /> : <span className="text-xs">🔗</span>
+                    )}
                 </div>
                 <div>
                     <div className="font-medium text-zinc-900 dark:text-zinc-100">{link.title}</div>
