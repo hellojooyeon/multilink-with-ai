@@ -8,7 +8,7 @@ import { LinkItem } from "@/components/LinkItem";
 import { ShareButton } from "@/components/ShareButton";
 import { VisitTracker } from "@/components/VisitTracker";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Settings, LayoutGrid, List as ListIcon, ArrowUpDown } from "lucide-react";
+import { Settings, LayoutGrid, List as ListIcon, ArrowUp, ArrowDown } from "lucide-react";
 
 interface MainPageClientProps {
     profile: Profile;
@@ -35,23 +35,16 @@ export function MainPageClient({ profile, links, groups }: MainPageClientProps) 
         return [...links].sort((a, b) => {
             let comparison = 0;
             if (sortBy === 'date') {
-                // Sort by startDate. 
-                // If startDate is null, treat as "Always Open". 
-                // User requested "Active Descending" -> "Latest Open Date" / Future first?
-                // Or "Newest" first?
-                // Let's assume: Future dates > Present dates > Past dates > Null (Always open).
-                // If sorting DESC: Future -> Present -> Past -> Null.
-                // If sorting ASC: Null -> Past -> Present -> Future.
+                const aHasDate = a.startDate != null;
+                const bHasDate = b.startDate != null;
 
-                // Handling nulls:
-                // We want "Opening Soon" (Future) at top if DESC?
-                // Let's treat null as 0 (far past) or Infinity?
-                // Usually "Always Open" should be accessible.
-                // Let's stick to simple timestamp comparison.
+                // startDate가 null인 링크(항상 오픈)는 항상 맨 뒤로
+                if (!aHasDate && !bHasDate) return 0;
+                if (!aHasDate) return 1;
+                if (!bHasDate) return -1;
 
-                const dateA = a.startDate ? new Date(a.startDate).getTime() : 0;
-                const dateB = b.startDate ? new Date(b.startDate).getTime() : 0;
-
+                const dateA = new Date(a.startDate!).getTime();
+                const dateB = new Date(b.startDate!).getTime();
                 comparison = dateA - dateB;
             } else if (sortBy === 'name') {
                 comparison = a.title.localeCompare(b.title);
@@ -135,7 +128,7 @@ export function MainPageClient({ profile, links, groups }: MainPageClientProps) 
                         <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value as SortOption)}
-                            className="bg-transparent text-sm font-medium text-zinc-600 dark:text-zinc-300 focus:outline-none cursor-pointer"
+                            className="bg-white dark:bg-zinc-800 text-sm font-medium text-zinc-600 dark:text-zinc-300 focus:outline-none cursor-pointer rounded px-1 py-0.5"
                         >
                             <option value="date">Date</option>
                             <option value="name">Name</option>
@@ -145,7 +138,7 @@ export function MainPageClient({ profile, links, groups }: MainPageClientProps) 
                             className="p-1 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
                             aria-label="Toggle Sort Order"
                         >
-                            <ArrowUpDown size={16} className={sortOrder === 'desc' ? 'transform rotate-180' : ''} />
+                            {sortOrder === 'asc' ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
                         </button>
                     </div>
                 </div>
@@ -162,7 +155,7 @@ export function MainPageClient({ profile, links, groups }: MainPageClientProps) 
                                     {/*  Maybe show group icon if available, but for now just name */}
                                     {group.name}
                                 </h3>
-                                <div className={viewMode === 'card' ? 'space-y-4' : 'space-y-3'}>
+                                <div className={viewMode === 'card' ? 'grid grid-cols-2 gap-3' : 'space-y-3'}>
                                     {groupLinks.map((link) => (
                                         <LinkItem key={link.id} link={link} viewMode={viewMode} />
                                     ))}
@@ -173,7 +166,7 @@ export function MainPageClient({ profile, links, groups }: MainPageClientProps) 
 
                     {/* Ungrouped Links */}
                     {groupedLinks.ungrouped.length > 0 && (
-                        <div className={viewMode === 'card' ? 'space-y-4' : 'space-y-3'}>
+                        <div className={viewMode === 'card' ? 'grid grid-cols-2 gap-3' : 'space-y-3'}>
                             {groupedLinks.ungrouped.map((link) => (
                                 <LinkItem key={link.id} link={link} viewMode={viewMode} />
                             ))}

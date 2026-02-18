@@ -120,7 +120,7 @@ export function LinkManager({ links, groups }: LinkManagerProps) {
                 <div className="bg-zinc-50 dark:bg-zinc-900 p-4 rounded border border-zinc-200 dark:border-zinc-800">
                     <form action={handleCreateGroup} className="flex gap-2">
                         <input name="name" placeholder="Group Name (e.g. 🎨 Portfolio)" className="flex-1 p-2 rounded border" required />
-                        <button type="submit" className="px-4 py-2 bg-zinc-900 text-white rounded">reate</button>
+                        <button type="submit" className="px-4 py-2 bg-zinc-900 text-white rounded">Create</button>
                         <button type="button" onClick={() => setIsCreatingGroup(false)} className="px-4 py-2 border rounded">Cancel</button>
                     </form>
                 </div>

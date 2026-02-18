@@ -23,29 +23,44 @@ export function LinkItem({ link, viewMode = 'card' }: LinkItemProps) {
     // "isActive=true => shown". If current < startDate, it is exposed but locked.
 
     const [isLocked, setIsLocked] = useState(false);
+    const [isEnded, setIsEnded] = useState(false);
     const [formattedDate, setFormattedDate] = useState('');
 
     useEffect(() => {
-        if (link.startDate) {
+        const checkStatus = () => {
             const now = new Date();
-            const start = new Date(link.startDate);
-            setIsLocked(start > now);
 
-            setFormattedDate(start.toLocaleDateString('ko-KR', {
-                year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
-            }));
-        }
-    }, [link.startDate]);
+            if (link.startDate) {
+                const start = new Date(link.startDate);
+                setIsLocked(start > now);
+                setFormattedDate(start.toLocaleDateString('ko-KR', {
+                    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+                }));
+            }
+
+            if (link.endDate) {
+                const end = new Date(link.endDate);
+                setIsEnded(end < now);
+            }
+        };
+
+        checkStatus();
+
+        // Re-check every minute so lock/ended state updates in real-time
+        const interval = setInterval(checkStatus, 60_000);
+        return () => clearInterval(interval);
+    }, [link.startDate, link.endDate]);
 
     const handleClick = (e: React.MouseEvent) => {
-        if (isLocked) {
+        if (isLocked || isEnded) {
             e.preventDefault();
-            setShowModal(true);
+            if (isLocked) setShowModal(true);
         } else {
-            // Only record click if the link is actually opening
             recordLinkClick(link.id);
         }
     };
+
+    if (isEnded) return null;
 
     return (
         <>
