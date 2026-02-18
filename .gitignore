@@ -38,6 +38,8 @@ yarn-error.log*
 .vercel
 .idea
 *.db
+prisma/app
+public/uploads
 
 # typescript
 *.tsbuildinfo
