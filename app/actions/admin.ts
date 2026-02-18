@@ -59,6 +59,27 @@ export async function updateGroup(id: number, data: { name?: string; order?: num
     return group;
 }
 
+export async function updateGroupLinks(groupId: number, linkIds: number[]) {
+    await checkAuth();
+
+    // 1. Remove all links from this group
+    await prisma.link.updateMany({
+        where: { groupId },
+        data: { groupId: null }
+    });
+
+    // 2. Add selected links to this group
+    if (linkIds.length > 0) {
+        await prisma.link.updateMany({
+            where: { id: { in: linkIds } },
+            data: { groupId }
+        });
+    }
+
+    revalidatePath("/");
+    revalidatePath("/admin");
+}
+
 export async function deleteGroup(id: number) {
     await checkAuth();
     // Optional: Set groupId of links in this group to null or delete them
@@ -85,8 +106,7 @@ export async function getGroups() {
 export async function createLink(data: {
     title: string;
     url: string;
-    variant?: string;
-    icon?: string;
+    image?: string;
     description?: string;
     startDate?: Date;
     endDate?: Date;
@@ -111,7 +131,7 @@ export async function createLink(data: {
 export async function updateLink(id: number, data: {
     title?: string;
     url?: string;
-    variant?: string;
+    image?: string;
     icon?: string;
     description?: string;
     startDate?: Date | null;

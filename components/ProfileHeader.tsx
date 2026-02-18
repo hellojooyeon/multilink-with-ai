@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Profile } from "@prisma/client";
+import { Profile } from "@/prisma/app/generated/prisma-client";
 import { Icon } from "@/components/Icon";
 
 interface ProfileHeaderProps {
