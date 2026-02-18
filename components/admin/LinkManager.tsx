@@ -100,13 +100,6 @@ export function LinkManager({ links, groups }: LinkManagerProps) {
             <div className="flex justify-between items-center">
                 <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Link Management</h2>
                 <div className="space-x-2">
-                    <a
-                        href="/admin/preview"
-                        target="_blank"
-                        className="px-3 py-1 text-sm bg-zinc-200 dark:bg-zinc-800 rounded hover:bg-zinc-300 dark:hover:bg-zinc-700 inline-block"
-                    >
-                        Preview Main Page
-                    </a>
                     <button
                         onClick={() => setIsCreatingGroup(true)}
                         className="px-3 py-1 text-sm bg-zinc-200 dark:bg-zinc-800 rounded hover:bg-zinc-300 dark:hover:bg-zinc-700"
