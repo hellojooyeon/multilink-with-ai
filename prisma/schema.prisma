@@ -31,7 +31,8 @@ model Link {
   title       String
   url         String
   icon        String?  // lucide-react icon name
-  variant     String   @default("card") // "card" | "list"
+  image       String?  // URL for the link image (thumbnail)
+
   description String?  // Optional description for the link
   order       Int      @default(0)
   isActive    Boolean  @default(true)

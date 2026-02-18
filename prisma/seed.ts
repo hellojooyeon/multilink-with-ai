@@ -39,7 +39,6 @@ async function main() {
                 title: 'Official Website',
                 url: 'https://example.com',
                 icon: 'Globe',
-                variant: 'card',
                 order: 1,
                 isActive: true,
                 groupId: groupWork.id
@@ -48,7 +47,6 @@ async function main() {
                 title: 'Latest YouTube Video',
                 url: 'https://youtube.com',
                 icon: 'Youtube',
-                variant: 'card',
                 order: 2,
                 isActive: true,
                 groupId: groupSocial.id
@@ -57,7 +55,6 @@ async function main() {
                 title: 'Open Soon Project',
                 url: 'https://example.com/project',
                 icon: 'Rocket',
-                variant: 'list',
                 order: 3,
                 isActive: true,
                 startDate: new Date('2030-01-01'), // Future date
@@ -67,7 +64,6 @@ async function main() {
                 title: 'My Portfolio',
                 url: 'https://portfolio.example.com',
                 icon: 'Briefcase',
-                variant: 'list',
                 order: 4,
                 isActive: true,
             },
@@ -75,7 +71,6 @@ async function main() {
                 title: 'Coming Soon (Inactive)',
                 url: 'https://example.com/coming-soon',
                 icon: 'Star',
-                variant: 'card',
                 order: 5,
                 isActive: false,
             },
