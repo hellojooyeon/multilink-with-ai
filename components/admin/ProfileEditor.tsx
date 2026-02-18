@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { updateProfile } from "@/app/actions/admin";
-import { Profile } from "@prisma/client";
+import { Profile } from "@/prisma/app/generated/prisma-client";
 
 interface ProfileEditorProps {
     profile: Profile;
