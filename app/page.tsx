@@ -1,6 +1,6 @@
 import { MainPageClient } from "@/components/MainPageClient";
 import { getPublicData } from "@/app/actions/public";
-
+export const dynamic = 'force-dynamic'; // 항상 최신 데이터를 가져옴
 export default async function Home() {
   const { profile, links, groups } = await getPublicData();
 
