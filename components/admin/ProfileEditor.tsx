@@ -36,11 +36,7 @@ export function ProfileEditor({ profile }: ProfileEditorProps) {
             // Given the environment, URL input is safest.
 
             const imageUrl = formData.get("image") as string;
-            if (imageUrl) {
-                data.image = imageUrl;
-            } else if (!profile.image) {
-                // Default image logic (if we were setting it here, but maybe backend or frontend display handles it)
-            }
+            data.image = imageUrl || "";
 
             await updateProfile(data);
             alert("Profile updated successfully!");

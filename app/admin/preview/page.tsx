@@ -17,10 +17,10 @@ export default async function AdminPreviewPage() {
             {/* Preview Banner / Exit Button */}
             <div className="fixed top-4 right-4 z-50">
                 <a
-                    href="/"
+                    href="/admin"
                     className="bg-black/80 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-black transition backdrop-blur-sm border border-white/20 shadow-lg"
                 >
-                    Exit Preview (Logout)
+                    Exit Preview
                 </a>
             </div>
             <MainPageClient profile={profile} links={links} groups={groups} />

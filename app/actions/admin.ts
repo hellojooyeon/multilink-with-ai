@@ -107,6 +107,7 @@ export async function createLink(data: {
     title: string;
     url: string;
     image?: string;
+    icon?: string;
     description?: string;
     startDate?: Date;
     endDate?: Date;
